@@ -4,10 +4,10 @@
  */
 #include "cmps14/cmps14.hpp"
 
-// https://www.kernel.org/doc/Documentation/i2c/smbus-protocol 
+// https://www.kernel.org/doc/Documentation/i2c/smbus-protocol
 // Required for I2C communication
-//#include <linux/i2c-dev.h>
-//#include <i2c/smbus.h>
+// #include <linux/i2c-dev.h>
+// #include <i2c/smbus.h>
 
 // TODO: Link these in CMakeLists.txt
 // Required for serial communication
@@ -47,20 +47,32 @@
 
 #define CMPS14_CAL_STATE 0x1E
 
-cmps14::cmps14(bool i2c)
+#define CMPS14_SERIAL_BAUD_RATE 9600
+
+int cmps14_fd;
+
+cmps14::cmps14(bool i2c, uint16_t i2cAddr, std::string serialPort)
 {
     _i2c = i2c;
+    _i2cAddr = i2cAddr;
+    _serialPort = serialPort;
 }
 
 int cmps14::begin()
 {
-    if (_i2c)
+    // If _i2c is true, communicate over i2c, otherwise communicate over serial port
+    cmps14_fd = (_i2c) ? wiringPiI2CSetup(_i2cAddr) : serialOpen(_serialPort.c_str(), CMPS14_SERIAL_BAUD_RATE);
+    if (cmps14_fd == -1)
     {
-        // If _i2c is true, communicate over i2c
+        std::cerr << "Unable to initialize communication with CMPS14" << std::endl;
+        return -1;
     }
-    else
+
+    // Initialize WiringPi
+    if (wiringPiSetup() == -1)
     {
-        // if _i2c is false, communicate over Serial
+        std::cerr << "Unable to start WiringPi" << std::endl;
+        return -1;
     }
 
     return 1;
@@ -68,4 +80,7 @@ int cmps14::begin()
 
 cmps14::~cmps14()
 {
+    // Close the serial file descriptor if needed
+    if (!_i2c)
+        serialClose(cmps14_fd);
 }

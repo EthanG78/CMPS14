@@ -1,8 +1,11 @@
 # CMPS14
-A C++ driver for the [CMPS14 Tilt Compensated Magnetic Compass](https://ca.robotshop.com/products/tilt-compensated-magnetic-compass-cmps14). 
+A C++ driver for the [CMPS14 Tilt Compensated Magnetic Compass](https://ca.robotshop.com/products/tilt-compensated-magnetic-compass-cmps14). This driver is meant to be used on the Raspberry Pi family of microcontrollers.
 
 # WIP
 As of February 2023, this is a work in progress.
+
+# Dependencies
+- WiringPi: Used for serial and I2C communication on Raspberry Pi
 
 # How to build
 The following commands have been tested on CentOS 8.5 and Debian 11 (bullseye)
