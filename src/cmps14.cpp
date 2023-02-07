@@ -6,13 +6,14 @@
 
 // https://www.kernel.org/doc/Documentation/i2c/smbus-protocol 
 // Required for I2C communication
-#include <linux/i2c-dev.h>
-#include <i2c/smbus.h>
+//#include <linux/i2c-dev.h>
+//#include <i2c/smbus.h>
 
 // TODO: Link these in CMakeLists.txt
 // Required for serial communication
 #include <wiringPi.h>
 #include <wiringSerial.h>
+#include <wiringPiI2C.h>
 
 // Register addresses on the CMPS14
 #define CMPS14_BEARING_HIGH 0x02
