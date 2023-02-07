@@ -51,6 +51,44 @@
 
 int cmps14_fd;
 
+// TODO: implement serial read byte
+uint8_t cmps14::_readByte(uint8_t reg)
+{
+    return (_i2c) ? (uint8_t)wiringPiI2CReadReg8(cmps14_fd, (int)reg) : 0x00;
+}
+
+// TODO: implement serial read word
+uint16_t cmps14::_readWord(uint8_t reg)
+{
+    return (_i2c) ? (uint16_t)wiringPiI2CReadReg16(cmps14_fd, (int)reg) : 0x0000;
+}
+
+// TODO: implement i2c and serial write byte
+uint8_t cmps14::_writeByte(uint8_t reg)
+{
+    if (_i2c)
+    {
+    }
+    else
+    {
+    }
+
+    return 0x00;
+}
+
+// TODO: implement i2c and serial write word
+uint16_t cmps14::_writeWord(uint8_t reg)
+{
+    if (_i2c)
+    {
+    }
+    else
+    {
+    }
+    
+    return 0x0000;
+}
+
 cmps14::cmps14(bool i2c, uint16_t i2cAddr, std::string serialPort)
 {
     _i2c = i2c;
@@ -74,6 +112,10 @@ int cmps14::begin()
         std::cerr << "Unable to start WiringPi" << std::endl;
         return -1;
     }
+
+    // debugging
+    std::cout << "CMPS14 IMU INITIALIZED" << std::endl;
+    std::cout << "Software version: " << (int)_readByte(0x00) << std::endl;
 
     return 1;
 }
