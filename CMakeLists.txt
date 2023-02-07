@@ -19,7 +19,9 @@ add_library(
 set_target_properties(cmps14 PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(cmps14 PROPERTIES PUBLIC_HEADER include/cmps14/cmps14.hpp)
 target_include_directories(cmps14 PUBLIC include)
-target_link_libraries(cmps14 PUBLIC wiringPi)
+
+find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
+target_link_libraries(cmps14 ${WIRINGPI_LIBRARIES})
 
 include(GNUInstallDirs)
 install(

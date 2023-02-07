@@ -45,4 +45,6 @@ public:
     ~cmps14();
 
     int begin();
+
+    int getSoftwareVersion();
 };

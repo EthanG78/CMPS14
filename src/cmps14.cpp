@@ -85,7 +85,7 @@ uint16_t cmps14::_writeWord(uint8_t reg)
     else
     {
     }
-    
+
     return 0x0000;
 }
 
@@ -94,6 +94,13 @@ cmps14::cmps14(bool i2c, uint16_t i2cAddr, std::string serialPort)
     _i2c = i2c;
     _i2cAddr = i2cAddr;
     _serialPort = serialPort;
+}
+
+cmps14::~cmps14()
+{
+    // Close the serial file descriptor if needed
+    if (!_i2c)
+        serialClose(cmps14_fd);
 }
 
 int cmps14::begin()
@@ -115,14 +122,11 @@ int cmps14::begin()
 
     // debugging
     std::cout << "CMPS14 IMU INITIALIZED" << std::endl;
-    std::cout << "Software version: " << (int)_readByte(0x00) << std::endl;
 
     return 1;
 }
 
-cmps14::~cmps14()
+int cmps14::getSoftwareVersion()
 {
-    // Close the serial file descriptor if needed
-    if (!_i2c)
-        serialClose(cmps14_fd);
+    return (int)_readByte(0x00);
 }

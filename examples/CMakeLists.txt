@@ -1,0 +1,2 @@
+add_executable(cmps14InitTest cmps14_init.cpp)
+target_link_libraries(cmps14InitTest PRIVATE cmps14)
