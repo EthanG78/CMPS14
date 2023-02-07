@@ -11,6 +11,8 @@ project(
     LANGUAGES CXX
 )
 
+add_subdirectory(examples)
+
 add_library(
     cmps14  
     src/cmps14.cpp include/cmps14/cmps14.hpp
