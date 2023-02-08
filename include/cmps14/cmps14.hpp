@@ -35,8 +35,8 @@ private:
     uint16_t _readWord(uint8_t reg);
 
     // Writing helper functions
-    uint8_t _writeByte(uint8_t reg);
-    uint16_t _writeWord(uint8_t reg);
+    uint8_t _writeByte(uint8_t reg, uint8_t data);
+    uint16_t _writeWord(uint8_t reg, uint16_t data);
 
 public:
     cmps14(bool i2c = true,

@@ -64,10 +64,12 @@ uint16_t cmps14::_readWord(uint8_t reg)
 }
 
 // TODO: implement i2c and serial write byte
-uint8_t cmps14::_writeByte(uint8_t reg)
+uint8_t cmps14::_writeByte(uint8_t reg, uint8_t data)
 {
     if (_i2c)
     {
+        // No clue what this returns
+        wiringPiI2CWriteReg8(cmps14_fd, (int)reg, (int)data)
     }
     else
     {
@@ -77,10 +79,12 @@ uint8_t cmps14::_writeByte(uint8_t reg)
 }
 
 // TODO: implement i2c and serial write word
-uint16_t cmps14::_writeWord(uint8_t reg)
+uint16_t cmps14::_writeWord(uint8_t reg, uint16_t data)
 {
     if (_i2c)
     {
+        // No clue what this returns
+        wiringPiI2CWriteReg16(cmps14_fd, (int)reg, (int)data)
     }
     else
     {
