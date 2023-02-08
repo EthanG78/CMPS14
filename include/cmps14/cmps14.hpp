@@ -46,8 +46,9 @@ public:
     int begin();
 
     int getSoftwareVersion();
+    int getCalibrationStatus();
 
     float getHeading();
-
+    float getPitch();
     float getRoll();
 };

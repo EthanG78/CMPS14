@@ -23,6 +23,7 @@ int main()
     }
 
     std::cout << "IMU Software Version: " << imu->getSoftwareVersion() << std::endl;
+    std::cout << "IMU Calibration State: " << imu->getCalibrationStatus() << std::endl;
 
     return 1;
 }

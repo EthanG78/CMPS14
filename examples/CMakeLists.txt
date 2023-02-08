@@ -10,5 +10,8 @@ target_link_libraries(cmps14I2CHeadingTest PRIVATE cmps14)
 add_executable(cmps14SerialHeadingTest cmps14_serial_heading.cpp)
 target_link_libraries(cmps14SerialHeadingTest PRIVATE cmps14)
 
+add_executable(cmps14I2CPitchTest cmps14_i2c_pitch.cpp)
+target_link_libraries(cmps14I2CPitchTest PRIVATE cmps14)
+
 add_executable(cmps14I2CRollTest cmps14_i2c_roll.cpp)
 target_link_libraries(cmps14I2CRollTest PRIVATE cmps14)

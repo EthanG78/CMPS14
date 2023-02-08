@@ -164,6 +164,27 @@ int cmps14::getSoftwareVersion()
     return ver;
 }
 
+int cmps14::getCalibrationStatus()
+{
+    int state;
+    if (_i2c)
+    {
+        state = static_cast<int>(_readByte(CMPS14_CAL_STATE));
+    }
+    else
+    {
+        _writeByte(CMPS14_CALIB_STATE_CMD);
+        while (!serialDataAvail(cmps14_fd))
+        {
+        }
+
+        state = static_cast<int>(_readByte());
+    }
+
+    // Only bits 0 and 1 reflect cal state
+    return state & 0x03;
+}
+
 float cmps14::getHeading()
 {
     uint8_t headingMsb;
@@ -194,6 +215,25 @@ float cmps14::getHeading()
     // need to extract last digit as decimal in tens place.
     float decimal = static_cast<float>(heading % 10) / 10;
     return static_cast<float>(heading / 10) + decimal;
+}
+
+float cmps14::getPitch()
+{
+    int8_t pitch;
+    if (_i2c)
+    {
+        pitch = _readSignedByte(CMPS14_PITCH);
+    }
+    else
+    {
+        _writeByte(CMPS14_PITCH_CMD);
+        while (!serialDataAvail(cmps14_fd))
+        {
+        }
+        pitch = _readSignedByte();
+    }
+
+    return static_cast<float>(pitch);
 }
 
 // WIP: MATH IS WRONG RIGHT NOW
@@ -229,5 +269,5 @@ float cmps14::getRoll()
     float decimal = static_cast<float>(roll % 10) / 10;
     if (roll < 0)
         decimal *= -1;
-    return static_cast<float>(roll / 10) + decimal;
+    return static_cast<float>(roll / 10);// + decimal;
 }

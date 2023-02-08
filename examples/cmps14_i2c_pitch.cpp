@@ -1,10 +1,10 @@
 /**
- * cmps14_i2c_roll.cpp
+ * cmps14_i2c_pitch.cpp
  * Author: Ethan Garnier
  * Initialize CMPS14 IMU
  * for I2C communication and
- * output roll information.
-*/
+ * output pitch information.
+ */
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -25,7 +25,7 @@ int main()
 
     while (1)
     {
-        std::cout << "Roll: " << imu->getRoll() << std::endl;
+        std::cout << "Pitch: " << imu->getPitch() << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
