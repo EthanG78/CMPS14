@@ -18,7 +18,11 @@
 #define CMPS14_HEADING_HIGH 0x02
 #define CMPS14_HEADING_LOW 0x03
 #define CMPS14_PITCH 0x04
+#define CMPS14_PITCH_HIGH 0x1A
+#define CMPS14_PITCH_LOW 0x1B
 #define CMPS14_ROLL 0x05
+#define CMPS14_ROLL_HIGH 0x1C
+#define CMPS14_ROLL_LOW 0x1D
 #define CMPS14_MAGNETOMETER_X_HIGH 0x06
 #define CMPS14_MAGNETOMETER_X_LOW 0x07
 #define CMPS14_MAGNETOMETER_Y_HIGH 0x08
@@ -37,8 +41,6 @@
 #define CMPS14_GYROSCOPE_Y_LOW 0x15
 #define CMPS14_GYROSCOPE_Z_HIGH 0x16
 #define CMPS14_GYROSCOPE_Z_LOW 0x17
-#define CMPS14_ROLL_HIGH 0x1C
-#define CMPS14_ROLL_LOW 0x1D
 #define CMPS14_CAL_STATE 0x1E
 
 // CMPS14 Serial commands
@@ -47,7 +49,8 @@
 #define CMPS14_SVER_CMD 0x11
 #define CMPS14_HEADING_8BIT_CMD 0x12
 #define CMPS14_HEADING_16BIT_CMD 0x13
-#define CMPS14_PITCH_CMD 0x14
+#define CMPS14_PITCH_90_CMD 0x14
+#define CMPS14_PITCH_180_CMD 0x27
 #define CMPS14_ROLL_90_CMD 0x15
 #define CMPS14_ROLL_180_CMD 0x26
 #define CMPS14_MAG_RAW_CMD 0x19
@@ -297,7 +300,7 @@ float cmps14::getHeading()
         headingLsb = _readByte();
     }
 
-    uint16_t heading = ((uint16_t)headingMsb << 8) | headingLsb;
+    uint16_t heading = (static_cast<uint16_t>(headingMsb) << 8) | headingLsb;
 
     // Compass heading 16 bit, i.e. 0-3599, representing 0-359.9 degrees, therefore
     // need to extract last digit as decimal in tens place.
@@ -307,6 +310,71 @@ float cmps14::getHeading()
 
 float cmps14::getPitch()
 {
+    // If the CMPS14 software version is less than 5, we do
+    // not have access to 16-bit pitch values. We need to check.
+
+    /*if (_i2c)
+    {
+        if (static_cast<int>(_readByte(0x00)) >= 5)
+        {
+            int8_t pitchMsb = _readSignedByte(CMPS14_PITCH_HIGH);
+            int8_t pitchLsb = _readSignedByte(CMPS14_PITCH_LOW);
+
+            int16_t pitch = (static_cast<int16_t>(pitchMsb) << 8) | pitchLsb;
+
+            // Value is in tenths of degrees (range of +/- 900). Have to extract last
+            // digit as decimal in tenths place
+            float decimal = static_cast<float>(pitch % 10) / 10;
+            if (pitch < 0)
+                decimal *= -1;
+            return static_cast<float>(pitch / 10);// + decimal;
+        }
+        else
+        {
+            return static_cast<float>(_readSignedByte(CMPS14_PITCH));
+        }
+    }
+    else
+    {
+        _writeByte(CMPS14_SVER_CMD);
+        while (!serialDataAvail(cmps14_fd))
+        {
+        }
+
+        if (static_cast<int>(_readByte()) >= 5)
+        {
+
+            _writeByte(CMPS14_PITCH_180_CMD);
+            while (!serialDataAvail(cmps14_fd))
+            {
+            }
+            int8_t pitchMsb = _readSignedByte();
+
+            while (!serialDataAvail(cmps14_fd))
+            {
+            }
+            int8_t pitchLsb = _readSignedByte();
+
+            int16_t pitch = (static_cast<int16_t>(pitchMsb) << 8) | pitchLsb;
+
+            // Value is in tenths of degrees (range of +/- 900). Have to extract last
+            // digit as decimal in tenths place
+            float decimal = static_cast<float>(pitch % 10) / 10;
+            if (pitch < 0)
+                decimal *= -1;
+            return static_cast<float>(pitch / 10) + decimal;
+        }
+        else
+        {
+            _writeByte(CMPS14_PITCH_90_CMD);
+            while (!serialDataAvail(cmps14_fd))
+            {
+            }
+
+            return static_cast<float>(_readSignedByte());
+        }
+    }*/
+
     int8_t pitch;
     if (_i2c)
     {
@@ -314,10 +382,11 @@ float cmps14::getPitch()
     }
     else
     {
-        _writeByte(CMPS14_PITCH_CMD);
+        _writeByte(CMPS14_PITCH_90_CMD);
         while (!serialDataAvail(cmps14_fd))
         {
         }
+
         pitch = _readSignedByte();
     }
 
