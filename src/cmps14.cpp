@@ -16,8 +16,8 @@
 #include <wiringPiI2C.h>
 
 // Register addresses on the CMPS14
-#define CMPS14_BEARING_HIGH 0x02
-#define CMPS14_BEARING_LOW 0x03
+#define CMPS14_HEADING_HIGH 0x02
+#define CMPS14_HEADING_LOW 0x03
 #define CMPS14_PITCH 0x04
 #define CMPS14_ROLL 0x05
 
@@ -69,7 +69,7 @@ uint8_t cmps14::_writeByte(uint8_t reg, uint8_t data)
     if (_i2c)
     {
         // No clue what this returns
-        wiringPiI2CWriteReg8(cmps14_fd, (int)reg, (int)data)
+        wiringPiI2CWriteReg8(cmps14_fd, (int)reg, (int)data);
     }
     else
     {
@@ -84,7 +84,7 @@ uint16_t cmps14::_writeWord(uint8_t reg, uint16_t data)
     if (_i2c)
     {
         // No clue what this returns
-        wiringPiI2CWriteReg16(cmps14_fd, (int)reg, (int)data)
+        wiringPiI2CWriteReg16(cmps14_fd, (int)reg, (int)data);
     }
     else
     {
@@ -133,4 +133,17 @@ int cmps14::begin()
 int cmps14::getSoftwareVersion()
 {
     return (int)_readByte(0x00);
+}
+
+float cmps14::getHeading()
+{
+    uint8_t headingMsb = _readByte(CMPS14_HEADING_HIGH);
+    uint8_t headingLsb = _readByte(CMPS14_HEADING_LOW);
+
+    uint16_t heading = ((uint16_t)headingMsb << 8) | headingLsb;
+
+    // Compass heading 16 bit, i.e. 0-3599, representing 0-359.9 degrees, therefore
+    // need to extract last digit as decimal in tens place.
+    float decimal = static_cast<float>(heading % 10) / 10;
+    return static_cast<float>(heading / 10) + decimal;
 }

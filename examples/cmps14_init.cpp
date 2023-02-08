@@ -6,6 +6,7 @@
  * CMPS14 communication over
  * I2C using the default address.
 */
+#include <iostream>
 #include "cmps14.hpp"
 
 int main()

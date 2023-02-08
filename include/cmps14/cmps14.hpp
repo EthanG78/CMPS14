@@ -47,4 +47,6 @@ public:
     int begin();
 
     int getSoftwareVersion();
+
+    float getHeading();
 };
