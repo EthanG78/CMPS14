@@ -236,10 +236,11 @@ float cmps14::getPitch()
     return static_cast<float>(pitch);
 }
 
-// WIP: MATH IS WRONG RIGHT NOW
+// BROKEN??
 float cmps14::getRoll()
 {
-    int8_t rollMsb;
+    // WIP: MATH IS WRONG RIGHT NOW ON HIGHER RESOLUTION ROLL
+    /*int8_t rollMsb;
     int8_t rollLsb;
 
     if (_i2c)
@@ -269,5 +270,21 @@ float cmps14::getRoll()
     float decimal = static_cast<float>(roll % 10) / 10;
     if (roll < 0)
         decimal *= -1;
-    return static_cast<float>(roll / 10);// + decimal;
+    return static_cast<float>(roll / 10) + decimal;*/
+
+    int8_t roll;
+    if (_i2c)
+    {
+        roll = _readSignedByte(CMPS14_ROLL);
+    }
+    else
+    {
+        _writeByte(CMPS14_ROLL_90_CMD);
+        while (!serialDataAvail(cmps14_fd))
+        {
+        }
+        roll = _readSignedByte();
+    }
+
+    return static_cast<float>(roll);
 }
