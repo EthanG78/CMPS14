@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 // The default I2C address of the CMPS14
 #define CMPS14_I2C_DEFAULT_ADDRESS 0x60
@@ -46,7 +47,7 @@ public:
     int begin();
 
     int getSoftwareVersion();
-    int getCalibrationStatus();
+    std::vector<int> getCalibrationStatus();
 
     float getHeading();
     float getPitch();

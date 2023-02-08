@@ -164,12 +164,12 @@ int cmps14::getSoftwareVersion()
     return ver;
 }
 
-int cmps14::getCalibrationStatus()
+std::vector<int> cmps14::getCalibrationStatus()
 {
-    int state;
+    uint8_t state;
     if (_i2c)
     {
-        state = static_cast<int>(_readByte(CMPS14_CAL_STATE));
+        state = _readByte(CMPS14_CAL_STATE);
     }
     else
     {
@@ -178,11 +178,17 @@ int cmps14::getCalibrationStatus()
         {
         }
 
-        state = static_cast<int>(_readByte());
+        state = _readByte();
     }
 
-    // Only bits 0 and 1 reflect cal state
-    return state & 0x03;
+    std::vector<int> calStatus{
+        static_cast<int>(state & 0x03),      // magnetometer calibration
+        static_cast<int>(state & 0x0C >> 2), // accelerometer calibration
+        static_cast<int>(state & 0x30 >> 4), // gyroscope calibration
+        static_cast<int>(state & 0xC0 >> 6)  // system calibration
+    };
+
+    return calStatus;
 }
 
 float cmps14::getHeading()
