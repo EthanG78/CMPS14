@@ -47,6 +47,10 @@ public:
     int begin();
 
     int getSoftwareVersion();
+    int enableBackgroundCal();
+    int disableBackgroundCal();
+    int storeCalProfile();
+    int eraseCalProfile();
     std::vector<int> getCalibrationStatus();
 
     float getHeading();

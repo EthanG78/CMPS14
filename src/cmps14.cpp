@@ -164,6 +164,88 @@ int cmps14::getSoftwareVersion()
     return ver;
 }
 
+int cmps14::enableBackgroundCal()
+{
+    uint8_t setupByte = 0x97;
+
+    if (_i2c)
+    {
+        _writeByte(0x98, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(0x95, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(0x99, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(setupByte, 0x00);
+    }
+    else
+    {
+        // TODO:
+    }
+
+    return 1;
+}
+
+int cmps14::disableBackgroundCal()
+{
+    uint8_t setupByte = 0x80;
+
+    if (_i2c)
+    {
+        _writeByte(0x98, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(0x95, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(0x99, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(setupByte, 0x00);
+    }
+    else
+    {
+        // TODO:
+    }
+
+    return 1;
+}
+
+int cmps14::storeCalProfile()
+{
+    if (_i2c)
+    {
+        _writeByte(0xF0, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(0xF5, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(0xF6, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+    }
+    else
+    {
+        // TODO:
+    }
+
+    return 1;
+}
+
+int cmps14::eraseCalProfile()
+{
+    if (_i2c)
+    {
+        _writeByte(0xE0, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(0xE5, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(21));
+        _writeByte(0xE2, 0x00);
+        std::this_thread::sleep_for(std::chrono::milliseconds(301));
+    }
+    else
+    {
+        // TODO:
+    }
+
+    return 1;
+}
+
 std::vector<int> cmps14::getCalibrationStatus()
 {
     uint8_t state;

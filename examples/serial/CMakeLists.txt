@@ -1,0 +1,5 @@
+add_executable(cmps14SerialHeadingTest cmps14_serial_heading.cpp)
+target_link_libraries(cmps14SerialHeadingTest PRIVATE cmps14)
+
+add_executable(cmps14SerialInitTest cmps14_serial_init.cpp)
+target_link_libraries(cmps14SerialInitTest PRIVATE cmps14)
