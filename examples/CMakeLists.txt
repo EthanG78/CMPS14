@@ -1,5 +1,11 @@
-add_executable(cmps14InitTest cmps14_init.cpp)
-target_link_libraries(cmps14InitTest PRIVATE cmps14)
+add_executable(cmps14I2CInitTest cmps14_i2c_init.cpp)
+target_link_libraries(cmps14I2CInitTest PRIVATE cmps14)
 
-add_executable(cmps14HeadingTest cmps14_heading.cpp)
-target_link_libraries(cmps14HeadingTest PRIVATE cmps14)
+add_executable(cmps14SerialInitTest cmps14_serial_init.cpp)
+target_link_libraries(cmps14SerialInitTest PRIVATE cmps14)
+
+add_executable(cmps14I2CHeadingTest cmps14_i2c_heading.cpp)
+target_link_libraries(cmps14I2CHeadingTest PRIVATE cmps14)
+
+add_executable(cmps14SerialHeadingTest cmps14_serial_heading.cpp)
+target_link_libraries(cmps14SerialHeadingTest PRIVATE cmps14)

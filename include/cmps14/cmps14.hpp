@@ -31,17 +31,15 @@ private:
     std::string _serialPort;
 
     // Reading helper functions
-    uint8_t _readByte(uint8_t reg);
-    uint16_t _readWord(uint8_t reg);
+    uint8_t _readByte(uint8_t reg = 0x00);
 
     // Writing helper functions
-    uint8_t _writeByte(uint8_t reg, uint8_t data);
-    uint16_t _writeWord(uint8_t reg, uint16_t data);
+    uint8_t _writeByte(uint8_t data, uint8_t reg = 0x00);
 
 public:
-    cmps14(bool i2c = true,
-           uint16_t i2cAddr = CMPS14_I2C_DEFAULT_ADDRESS,
-           std::string serialPort = CMPS14_SERIAL_DEFAULT_PORT);
+    cmps14(bool i2c = true);
+    cmps14(uint16_t i2cAddr);
+    cmps14(std::string serialPort);
     ~cmps14();
 
     int begin();

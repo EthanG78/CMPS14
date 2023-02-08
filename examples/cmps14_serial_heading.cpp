@@ -1,8 +1,8 @@
 /**
- * cmps14_heading.cpp
+ * cmps14_serial_heading.cpp
  * Author: Ethan Garnier
  * Initialize CMPS14 IMU
- * for I2C communication and
+ * for Serial communication and
  * output heading information.
 */
 #include <iostream>
@@ -13,7 +13,7 @@
 
 int main()
 {
-    auto imu = new cmps14(true);
+    auto imu = new cmps14(false);
 
     if (imu->begin() == -1)
     {
