@@ -74,6 +74,11 @@ uint8_t cmps14::_readByte(uint8_t reg)
     return static_cast<uint8_t>((_i2c) ? wiringPiI2CReadReg8(cmps14_fd, reg) : serialGetchar(cmps14_fd));
 }
 
+int8_t cmps14::_readSignedByte(uint8_t reg)
+{
+    return static_cast<int8_t>((_i2c) ? wiringPiI2CReadReg8(cmps14_fd, reg) : serialGetchar(cmps14_fd));
+}
+
 // TODO: Figure out return values here
 uint8_t cmps14::_writeByte(uint8_t data, uint8_t reg)
 {
@@ -189,4 +194,40 @@ float cmps14::getHeading()
     // need to extract last digit as decimal in tens place.
     float decimal = static_cast<float>(heading % 10) / 10;
     return static_cast<float>(heading / 10) + decimal;
+}
+
+// WIP: MATH IS WRONG RIGHT NOW
+float cmps14::getRoll()
+{
+    int8_t rollMsb;
+    int8_t rollLsb;
+
+    if (_i2c)
+    {
+        rollMsb = _readSignedByte(CMPS14_ROLL_HIGH);
+        rollLsb = _readSignedByte(CMPS14_ROLL_LOW);
+    }
+    else
+    {
+        _writeByte(CMPS14_ROLL_180_CMD);
+        while (!serialDataAvail(cmps14_fd))
+        {
+        }
+        rollMsb = _readSignedByte();
+
+        while (!serialDataAvail(cmps14_fd))
+        {
+        }
+        rollLsb = _readSignedByte();
+    }
+
+    int16_t roll = (static_cast<int16_t>(rollMsb) << 8) | rollLsb;
+
+    // 16 bit roll angle for +/- 180 from the horizontal plane.
+    // Value is in tenths of degrees (range of +/- 1800), thus
+    // need to extract last digit as decimal in tens place
+    float decimal = static_cast<float>(roll % 10) / 10;
+    if (roll < 0)
+        decimal *= -1;
+    return static_cast<float>(roll / 10) + decimal;
 }
