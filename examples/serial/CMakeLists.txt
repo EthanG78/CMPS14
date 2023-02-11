@@ -3,3 +3,9 @@ target_link_libraries(cmps14SerialHeadingTest PRIVATE cmps14)
 
 add_executable(cmps14SerialInitTest cmps14_serial_init.cpp)
 target_link_libraries(cmps14SerialInitTest PRIVATE cmps14)
+
+add_executable(cmps14SerialPitchTest cmps14_serial_pitch.cpp)
+target_link_libraries(cmps14SerialPitchTest PRIVATE cmps14)
+
+add_executable(cmps14SerialRollTest cmps14_serial_roll.cpp)
+target_link_libraries(cmps14SerialRollTest PRIVATE cmps14)
