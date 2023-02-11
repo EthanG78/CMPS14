@@ -9,3 +9,6 @@ target_link_libraries(cmps14I2CPitchTest PRIVATE cmps14)
 
 add_executable(cmps14I2CRollTest cmps14_i2c_roll.cpp)
 target_link_libraries(cmps14I2CRollTest PRIVATE cmps14)
+
+add_executable(cmps14I2CCalTest cmps14_i2c_cal.cpp)
+target_link_libraries(cmps14I2CCalTest PRIVATE cmps14)

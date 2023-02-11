@@ -19,6 +19,10 @@
 class cmps14
 {
 private:
+    // File descriptor used to read and write data
+    // to and from the CMPS14
+    int _cmps14Fd;
+
     // Set in constructor, decides if we communicate over
     // I2C or serial with CMPS134.
     bool _i2c;

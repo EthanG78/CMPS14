@@ -70,16 +70,14 @@
 #define CMPS14_BAUD_19200 0xA0
 #define CMPS14_BAUD_38400 0xA1
 
-int cmps14_fd;
-
 uint8_t cmps14::_readByte(uint8_t reg)
 {
-    return static_cast<uint8_t>((_i2c) ? wiringPiI2CReadReg8(cmps14_fd, reg) : serialGetchar(cmps14_fd));
+    return static_cast<uint8_t>((_i2c) ? wiringPiI2CReadReg8(_cmps14Fd, reg) : serialGetchar(_cmps14Fd));
 }
 
 int8_t cmps14::_readSignedByte(uint8_t reg)
 {
-    return static_cast<int8_t>((_i2c) ? wiringPiI2CReadReg8(cmps14_fd, reg) : serialGetchar(cmps14_fd));
+    return static_cast<int8_t>((_i2c) ? wiringPiI2CReadReg8(_cmps14Fd, reg) : serialGetchar(_cmps14Fd));
 }
 
 // TODO: Figure out return values here
@@ -88,11 +86,11 @@ uint8_t cmps14::_writeByte(uint8_t data, uint8_t reg)
     if (_i2c)
     {
         // No clue what this returns
-        wiringPiI2CWriteReg8(cmps14_fd, reg, data);
+        wiringPiI2CWriteReg8(_cmps14Fd, reg, data);
     }
     else
     {
-        serialPutchar(cmps14_fd, data);
+        serialPutchar(_cmps14Fd, data);
     }
 
     return 0x00;
@@ -121,14 +119,14 @@ cmps14::~cmps14()
 {
     // Close the serial file descriptor if needed
     if (!_i2c)
-        serialClose(cmps14_fd);
+        serialClose(_cmps14Fd);
 }
 
 int cmps14::begin()
 {
     // If _i2c is true, communicate over i2c, otherwise communicate over serial port
-    cmps14_fd = (_i2c) ? wiringPiI2CSetup(_i2cAddr) : serialOpen(_serialPort.c_str(), CMPS14_SERIAL_BAUD_RATE);
-    if (cmps14_fd == -1)
+    _cmps14Fd = (_i2c) ? wiringPiI2CSetup(_i2cAddr) : serialOpen(_serialPort.c_str(), CMPS14_SERIAL_BAUD_RATE);
+    if (_cmps14Fd == -1)
     {
         std::cerr << "Unable to initialize communication with CMPS14" << std::endl;
         return -1;
@@ -157,7 +155,7 @@ int cmps14::getSoftwareVersion()
     else
     {
         _writeByte(CMPS14_SVER_CMD);
-        while (!serialDataAvail(cmps14_fd))
+        while (!serialDataAvail(_cmps14Fd))
         {
         }
 
@@ -259,7 +257,7 @@ std::vector<int> cmps14::getCalibrationStatus()
     else
     {
         _writeByte(CMPS14_CALIB_STATE_CMD);
-        while (!serialDataAvail(cmps14_fd))
+        while (!serialDataAvail(_cmps14Fd))
         {
         }
 
@@ -289,12 +287,12 @@ float cmps14::getHeading()
     else
     {
         _writeByte(CMPS14_HEADING_16BIT_CMD);
-        while (!serialDataAvail(cmps14_fd))
+        while (!serialDataAvail(_cmps14Fd))
         {
         }
         headingMsb = _readByte();
 
-        while (!serialDataAvail(cmps14_fd))
+        while (!serialDataAvail(_cmps14Fd))
         {
         }
         headingLsb = _readByte();
@@ -326,8 +324,8 @@ float cmps14::getPitch()
             // digit as decimal in tenths place
             float decimal = static_cast<float>(pitch % 10) / 10;
             if (pitch < 0)
-                decimal *= -1;
-            return static_cast<float>(pitch / 10);// + decimal;
+                decimal *= -1.0;
+            return static_cast<float>(pitch / 10) + decimal;
         }
         else
         {
@@ -337,7 +335,7 @@ float cmps14::getPitch()
     else
     {
         _writeByte(CMPS14_SVER_CMD);
-        while (!serialDataAvail(cmps14_fd))
+        while (!serialDataAvail(_cmps14Fd))
         {
         }
 
@@ -345,12 +343,12 @@ float cmps14::getPitch()
         {
 
             _writeByte(CMPS14_PITCH_180_CMD);
-            while (!serialDataAvail(cmps14_fd))
+            while (!serialDataAvail(_cmps14Fd))
             {
             }
             int8_t pitchMsb = _readSignedByte();
 
-            while (!serialDataAvail(cmps14_fd))
+            while (!serialDataAvail(_cmps14Fd))
             {
             }
             int8_t pitchLsb = _readSignedByte();
@@ -361,13 +359,13 @@ float cmps14::getPitch()
             // digit as decimal in tenths place
             float decimal = static_cast<float>(pitch % 10) / 10;
             if (pitch < 0)
-                decimal *= -1;
+                decimal *= -1.0;
             return static_cast<float>(pitch / 10) + decimal;
         }
         else
         {
             _writeByte(CMPS14_PITCH_90_CMD);
-            while (!serialDataAvail(cmps14_fd))
+            while (!serialDataAvail(_cmps14Fd))
             {
             }
 
@@ -383,7 +381,7 @@ float cmps14::getPitch()
     else
     {
         _writeByte(CMPS14_PITCH_90_CMD);
-        while (!serialDataAvail(cmps14_fd))
+        while (!serialDataAvail(_cmps14Fd))
         {
         }
 
@@ -397,7 +395,7 @@ float cmps14::getPitch()
 float cmps14::getRoll()
 {
     // WIP: MATH IS WRONG RIGHT NOW ON HIGHER RESOLUTION ROLL
-    /*int8_t rollMsb;
+    int8_t rollMsb;
     int8_t rollLsb;
 
     if (_i2c)
@@ -408,12 +406,12 @@ float cmps14::getRoll()
     else
     {
         _writeByte(CMPS14_ROLL_180_CMD);
-        while (!serialDataAvail(cmps14_fd))
+        while (!serialDataAvail(_cmps14Fd))
         {
         }
         rollMsb = _readSignedByte();
 
-        while (!serialDataAvail(cmps14_fd))
+        while (!serialDataAvail(_cmps14Fd))
         {
         }
         rollLsb = _readSignedByte();
@@ -427,9 +425,9 @@ float cmps14::getRoll()
     float decimal = static_cast<float>(roll % 10) / 10;
     if (roll < 0)
         decimal *= -1;
-    return static_cast<float>(roll / 10) + decimal;*/
+    return static_cast<float>(roll / 10) + decimal;
 
-    int8_t roll;
+    /*int8_t roll;
     if (_i2c)
     {
         roll = _readSignedByte(CMPS14_ROLL);
@@ -437,11 +435,11 @@ float cmps14::getRoll()
     else
     {
         _writeByte(CMPS14_ROLL_90_CMD);
-        while (!serialDataAvail(cmps14_fd))
+        while (!serialDataAvail(_cmps14Fd))
         {
         }
         roll = _readSignedByte();
     }
 
-    return static_cast<float>(roll);
+    return static_cast<float>(roll);*/
 }
