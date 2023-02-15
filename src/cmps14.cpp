@@ -261,6 +261,12 @@ int cmps14::eraseCalProfile()
     return 1;
 }
 
+// NOTE:
+// According to the CMPS14 documentation:
+//      "Please note the Gyro feedback does not currently work,
+//       this is a bug in the sensor itself that is
+//       scheduled to be fixed."
+//
 std::vector<int> cmps14::getCalibrationStatus()
 {
     uint8_t state;
@@ -418,12 +424,34 @@ float cmps14::getRoll()
     return static_cast<float>(roll);*/
 }
 
-/*std::vector<float> cmps14::getOrientation()
+// WIP:
+std::vector<float> cmps14::getOrientation()
 {
+    uint16_t heading;
+    uint8_t headingMsb, headingLsb;
+    int8_t pitch, roll;
+
     if (_i2c)
     {
+        // TODO:
     }
     else
     {
+        _writeByte(CMPS14_ALL_ORIENT_CMD);
+        headingMsb = _readByte();
+        headingLsb = _readByte();
+        pitch = _readSignedByte();
+        roll = _readSignedByte();
+
+        heading = (static_cast<uint16_t>(headingMsb) << 8) | headingLsb;
     }
-}*/
+
+    float decimal = static_cast<float>(heading % 10) / 10;
+
+    std::vector<float> orientation{
+        static_cast<float>(heading / 10) + decimal,
+        static_cast<float>(pitch),
+        static_cast<float>(roll)};
+
+    return orientation;
+}

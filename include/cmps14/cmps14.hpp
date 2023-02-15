@@ -60,5 +60,5 @@ public:
     float getHeading();
     float getPitch();
     float getRoll();
-    //std::vector<float> getOrientation();
+    std::vector<float> getOrientation();
 };
