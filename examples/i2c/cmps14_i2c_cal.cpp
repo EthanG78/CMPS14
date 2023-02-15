@@ -30,7 +30,7 @@ int main()
               << "\tMagnotometer: " << calStatus[0] << std::endl;
 
     // Enable manual calibration
-    imu->enableBackgroundCal();
+    imu->toggleBackgroundCal(true);
 
     // Loop until all sensors are fully calibrated
     while (calStatus[3] + calStatus[2] + calStatus[1] + calStatus[0] < 12)

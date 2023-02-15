@@ -36,6 +36,7 @@ private:
     std::string _serialPort;
 
     // Reading helper functions
+    uint8_t _readSerialByte();
     uint8_t _readByte(uint8_t reg = 0x00);
     int8_t _readSignedByte(uint8_t reg = 0x00);
 
@@ -51,8 +52,7 @@ public:
     int begin();
 
     int getSoftwareVersion();
-    int enableBackgroundCal();
-    int disableBackgroundCal();
+    int toggleBackgroundCal(bool enable);
     int storeCalProfile();
     int eraseCalProfile();
     std::vector<int> getCalibrationStatus();
@@ -60,4 +60,5 @@ public:
     float getHeading();
     float getPitch();
     float getRoll();
+    //std::vector<float> getOrientation();
 };

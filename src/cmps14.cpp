@@ -58,6 +58,11 @@
 #define CMPS14_GYRO_RAW_CMD 0x21
 #define CMPS14_ALL_ORIENT_CMD 0x23
 #define CMPS14_CALIB_STATE_CMD 0x24
+#define CMPS14_BAUD_19200 0xA0
+#define CMPS14_BAUD_38400 0xA1
+#define CMPS14_OK 0x55
+
+// Calibration configuration commands
 #define CMPS14_CHANGE_CALIB_CONFIG_BYTE1_CMD 0x98
 #define CMPS14_CHANGE_CALIB_CONFIG_BYTE2_CMD 0x95
 #define CMPS14_CHANGE_CALIB_CONFIG_BYTE3_CMD 0x99
@@ -67,17 +72,26 @@
 #define CMPS14_DELETE_CALIB_BYTE1_CMD 0xE0
 #define CMPS14_DELETE_CALIB_BYTE2_CMD 0xE5
 #define CMPS14_DELETE_CALIB_BYTE3_CMD 0xE2
-#define CMPS14_BAUD_19200 0xA0
-#define CMPS14_BAUD_38400 0xA1
+
+// Helper that waits for serial data to be
+// available before reading it. Cleans up
+// serial code.
+uint8_t cmps14::_readSerialByte()
+{
+    while (!serialDataAvail(_cmps14Fd))
+    {
+    }
+    return serialGetchar(_cmps14Fd);
+}
 
 uint8_t cmps14::_readByte(uint8_t reg)
 {
-    return static_cast<uint8_t>((_i2c) ? wiringPiI2CReadReg8(_cmps14Fd, reg) : serialGetchar(_cmps14Fd));
+    return static_cast<uint8_t>((_i2c) ? wiringPiI2CReadReg8(_cmps14Fd, reg) : _readSerialByte());
 }
 
 int8_t cmps14::_readSignedByte(uint8_t reg)
 {
-    return static_cast<int8_t>((_i2c) ? wiringPiI2CReadReg8(_cmps14Fd, reg) : serialGetchar(_cmps14Fd));
+    return static_cast<int8_t>((_i2c) ? wiringPiI2CReadReg8(_cmps14Fd, reg) : _readSerialByte());
 }
 
 // TODO: Figure out return values here
@@ -155,55 +169,38 @@ int cmps14::getSoftwareVersion()
     else
     {
         _writeByte(CMPS14_SVER_CMD);
-        while (!serialDataAvail(_cmps14Fd))
-        {
-        }
-
         ver = static_cast<int>(_readByte());
     }
 
     return ver;
 }
 
-int cmps14::enableBackgroundCal()
+int cmps14::toggleBackgroundCal(bool enable)
 {
-    uint8_t setupByte = 0x97;
+    uint8_t setupByte = (enable) ? 0x97 : 0x80;
 
     if (_i2c)
     {
-        _writeByte(0x98, 0x00);
+        _writeByte(CMPS14_CHANGE_CALIB_CONFIG_BYTE1_CMD, 0x00);
         std::this_thread::sleep_for(std::chrono::milliseconds(21));
-        _writeByte(0x95, 0x00);
+        _writeByte(CMPS14_CHANGE_CALIB_CONFIG_BYTE2_CMD, 0x00);
         std::this_thread::sleep_for(std::chrono::milliseconds(21));
-        _writeByte(0x99, 0x00);
+        _writeByte(CMPS14_CHANGE_CALIB_CONFIG_BYTE3_CMD, 0x00);
         std::this_thread::sleep_for(std::chrono::milliseconds(21));
         _writeByte(setupByte, 0x00);
     }
     else
     {
-        // TODO:
-    }
-
-    return 1;
-}
-
-int cmps14::disableBackgroundCal()
-{
-    uint8_t setupByte = 0x80;
-
-    if (_i2c)
-    {
-        _writeByte(0x98, 0x00);
-        std::this_thread::sleep_for(std::chrono::milliseconds(21));
-        _writeByte(0x95, 0x00);
-        std::this_thread::sleep_for(std::chrono::milliseconds(21));
-        _writeByte(0x99, 0x00);
-        std::this_thread::sleep_for(std::chrono::milliseconds(21));
-        _writeByte(setupByte, 0x00);
-    }
-    else
-    {
-        // TODO:
+        _writeByte(CMPS14_CHANGE_CALIB_CONFIG_BYTE1_CMD);
+        if (_readByte() != CMPS14_OK)
+            return -1;
+        _writeByte(CMPS14_CHANGE_CALIB_CONFIG_BYTE2_CMD, 0x00);
+        if (_readByte() != CMPS14_OK)
+            return -1;
+        _writeByte(CMPS14_CHANGE_CALIB_CONFIG_BYTE3_CMD, 0x00);
+        if (_readByte() != CMPS14_OK)
+            return -1;
+        _writeByte(setupByte);
     }
 
     return 1;
@@ -213,16 +210,24 @@ int cmps14::storeCalProfile()
 {
     if (_i2c)
     {
-        _writeByte(0xF0, 0x00);
+        _writeByte(CMPS14_STORE_CALIB_BYTE1_CMD, 0x00);
         std::this_thread::sleep_for(std::chrono::milliseconds(21));
-        _writeByte(0xF5, 0x00);
+        _writeByte(CMPS14_STORE_CALIB_BYTE2_CMD, 0x00);
         std::this_thread::sleep_for(std::chrono::milliseconds(21));
-        _writeByte(0xF6, 0x00);
+        _writeByte(CMPS14_STORE_CALIB_BYTE3_CMD, 0x00);
         std::this_thread::sleep_for(std::chrono::milliseconds(21));
     }
     else
     {
-        // TODO:
+        _writeByte(CMPS14_STORE_CALIB_BYTE1_CMD);
+        if (_readByte() != CMPS14_OK)
+            return -1;
+        _writeByte(CMPS14_STORE_CALIB_BYTE2_CMD);
+        if (_readByte() != CMPS14_OK)
+            return -1;
+        _writeByte(CMPS14_STORE_CALIB_BYTE3_CMD);
+        if (_readByte() != CMPS14_OK)
+            return -1;
     }
 
     return 1;
@@ -232,17 +237,26 @@ int cmps14::eraseCalProfile()
 {
     if (_i2c)
     {
-        _writeByte(0xE0, 0x00);
+        _writeByte(CMPS14_DELETE_CALIB_BYTE1_CMD, 0x00);
         std::this_thread::sleep_for(std::chrono::milliseconds(21));
-        _writeByte(0xE5, 0x00);
+        _writeByte(CMPS14_DELETE_CALIB_BYTE2_CMD, 0x00);
         std::this_thread::sleep_for(std::chrono::milliseconds(21));
-        _writeByte(0xE2, 0x00);
-        std::this_thread::sleep_for(std::chrono::milliseconds(301));
+        _writeByte(CMPS14_DELETE_CALIB_BYTE3_CMD, 0x00);
     }
     else
     {
-        // TODO:
+        _writeByte(CMPS14_DELETE_CALIB_BYTE1_CMD);
+        if (_readByte() != CMPS14_OK)
+            return -1;
+        _writeByte(CMPS14_DELETE_CALIB_BYTE2_CMD);
+        if (_readByte() != CMPS14_OK)
+            return -1;
+        _writeByte(CMPS14_DELETE_CALIB_BYTE3_CMD);
+        if (_readByte() != CMPS14_OK)
+            return -1;
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(301));
 
     return 1;
 }
@@ -257,18 +271,14 @@ std::vector<int> cmps14::getCalibrationStatus()
     else
     {
         _writeByte(CMPS14_CALIB_STATE_CMD);
-        while (!serialDataAvail(_cmps14Fd))
-        {
-        }
-
         state = _readByte();
     }
 
     std::vector<int> calStatus{
-        static_cast<int>(state & 0x03),      // magnetometer calibration
-        static_cast<int>(state & 0x0C >> 2), // accelerometer calibration
-        static_cast<int>(state & 0x30 >> 4), // gyroscope calibration
-        static_cast<int>(state & 0xC0 >> 6)  // system calibration
+        static_cast<int>(state & 0x03),        // magnetometer calibration
+        static_cast<int>((state >> 2) & 0x03), // accelerometer calibration
+        static_cast<int>((state >> 4) & 0x03), // gyroscope calibration
+        static_cast<int>((state >> 6) & 0x03)  // system calibration
     };
 
     return calStatus;
@@ -287,14 +297,7 @@ float cmps14::getHeading()
     else
     {
         _writeByte(CMPS14_HEADING_16BIT_CMD);
-        while (!serialDataAvail(_cmps14Fd))
-        {
-        }
         headingMsb = _readByte();
-
-        while (!serialDataAvail(_cmps14Fd))
-        {
-        }
         headingLsb = _readByte();
     }
 
@@ -335,22 +338,11 @@ float cmps14::getPitch()
     else
     {
         _writeByte(CMPS14_SVER_CMD);
-        while (!serialDataAvail(_cmps14Fd))
-        {
-        }
-
         if (static_cast<int>(_readByte()) >= 5)
         {
 
             _writeByte(CMPS14_PITCH_180_CMD);
-            while (!serialDataAvail(_cmps14Fd))
-            {
-            }
             int8_t pitchMsb = _readSignedByte();
-
-            while (!serialDataAvail(_cmps14Fd))
-            {
-            }
             int8_t pitchLsb = _readSignedByte();
 
             int16_t pitch = (static_cast<int16_t>(pitchMsb) << 8) | pitchLsb;
@@ -365,10 +357,6 @@ float cmps14::getPitch()
         else
         {
             _writeByte(CMPS14_PITCH_90_CMD);
-            while (!serialDataAvail(_cmps14Fd))
-            {
-            }
-
             return static_cast<float>(_readSignedByte());
         }
     }*/
@@ -381,10 +369,6 @@ float cmps14::getPitch()
     else
     {
         _writeByte(CMPS14_PITCH_90_CMD);
-        while (!serialDataAvail(_cmps14Fd))
-        {
-        }
-
         pitch = _readSignedByte();
     }
 
@@ -406,14 +390,7 @@ float cmps14::getRoll()
     else
     {
         _writeByte(CMPS14_ROLL_180_CMD);
-        while (!serialDataAvail(_cmps14Fd))
-        {
-        }
         rollMsb = _readSignedByte();
-
-        while (!serialDataAvail(_cmps14Fd))
-        {
-        }
         rollLsb = _readSignedByte();
     }
 
@@ -435,11 +412,18 @@ float cmps14::getRoll()
     else
     {
         _writeByte(CMPS14_ROLL_90_CMD);
-        while (!serialDataAvail(_cmps14Fd))
-        {
-        }
         roll = _readSignedByte();
     }
 
     return static_cast<float>(roll);*/
 }
+
+/*std::vector<float> cmps14::getOrientation()
+{
+    if (_i2c)
+    {
+    }
+    else
+    {
+    }
+}*/
