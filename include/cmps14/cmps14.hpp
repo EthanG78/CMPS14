@@ -36,9 +36,8 @@ private:
     std::string _serialPort;
 
     // Reading helper functions
-    uint8_t _readSerialByte();
+    int _readSerialByte();
     uint8_t _readByte(uint8_t reg = 0x00);
-    int8_t _readSignedByte(uint8_t reg = 0x00);
 
     // Writing helper functions
     uint8_t _writeByte(uint8_t data, uint8_t reg = 0x00);

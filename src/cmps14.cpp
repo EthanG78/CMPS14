@@ -49,8 +49,8 @@
 #define CMPS14_SVER_CMD 0x11
 #define CMPS14_HEADING_8BIT_CMD 0x12
 #define CMPS14_HEADING_16BIT_CMD 0x13
-#define CMPS14_PITCH_90_CMD 0x14
-#define CMPS14_PITCH_180_CMD 0x27
+#define CMPS14_PITCH_8BIT_CMD 0x14
+#define CMPS14_PITCH_16BIT_CMD 0x27
 #define CMPS14_ROLL_90_CMD 0x15
 #define CMPS14_ROLL_180_CMD 0x26
 #define CMPS14_MAG_RAW_CMD 0x19
@@ -76,7 +76,7 @@
 // Helper that waits for serial data to be
 // available before reading it. Cleans up
 // serial code.
-uint8_t cmps14::_readSerialByte()
+int cmps14::_readSerialByte()
 {
     while (!serialDataAvail(_cmps14Fd))
     {
@@ -87,11 +87,6 @@ uint8_t cmps14::_readSerialByte()
 uint8_t cmps14::_readByte(uint8_t reg)
 {
     return static_cast<uint8_t>((_i2c) ? wiringPiI2CReadReg8(_cmps14Fd, reg) : _readSerialByte());
-}
-
-int8_t cmps14::_readSignedByte(uint8_t reg)
-{
-    return static_cast<int8_t>((_i2c) ? wiringPiI2CReadReg8(_cmps14Fd, reg) : _readSerialByte());
 }
 
 // TODO: Figure out return values here
@@ -320,25 +315,25 @@ float cmps14::getPitch()
     // If the CMPS14 software version is less than 5, we do
     // not have access to 16-bit pitch values. We need to check.
 
-    /*if (_i2c)
+    if (_i2c)
     {
         if (static_cast<int>(_readByte(0x00)) >= 5)
         {
-            int8_t pitchMsb = _readSignedByte(CMPS14_PITCH_HIGH);
-            int8_t pitchLsb = _readSignedByte(CMPS14_PITCH_LOW);
+            uint8_t pitchMsb = _readByte(CMPS14_PITCH_HIGH);
+            uint8_t pitchLsb = _readByte(CMPS14_PITCH_LOW);
 
-            int16_t pitch = (static_cast<int16_t>(pitchMsb) << 8) | pitchLsb;
+            int16_t pitch = static_cast<int16_t>((static_cast<uint16_t>(pitchMsb) << 8) | pitchLsb);
 
-            // Value is in tenths of degrees (range of +/- 900). Have to extract last
-            // digit as decimal in tenths place
             float decimal = static_cast<float>(pitch % 10) / 10;
             if (pitch < 0)
                 decimal *= -1.0;
+
             return static_cast<float>(pitch / 10) + decimal;
         }
         else
         {
-            return static_cast<float>(_readSignedByte(CMPS14_PITCH));
+            int8_t pitch = static_cast<int8_t>(_readByte(CMPS14_PITCH));
+            return static_cast<float>(pitch);
         }
     }
     else
@@ -347,84 +342,54 @@ float cmps14::getPitch()
         if (static_cast<int>(_readByte()) >= 5)
         {
 
-            _writeByte(CMPS14_PITCH_180_CMD);
-            int8_t pitchMsb = _readSignedByte();
-            int8_t pitchLsb = _readSignedByte();
+            _writeByte(CMPS14_PITCH_16BIT_CMD);
+            uint8_t pitchMsb = _readByte();
+            uint8_t pitchLsb = _readByte();
 
-            int16_t pitch = (static_cast<int16_t>(pitchMsb) << 8) | pitchLsb;
+            int16_t pitch = static_cast<int16_t>((static_cast<uint16_t>(pitchMsb) << 8) | pitchLsb);
 
-            // Value is in tenths of degrees (range of +/- 900). Have to extract last
-            // digit as decimal in tenths place
             float decimal = static_cast<float>(pitch % 10) / 10;
             if (pitch < 0)
                 decimal *= -1.0;
+
             return static_cast<float>(pitch / 10) + decimal;
         }
         else
         {
-            _writeByte(CMPS14_PITCH_90_CMD);
-            return static_cast<float>(_readSignedByte());
+            _writeByte(CMPS14_PITCH_8BIT_CMD);
+            int8_t pitch = static_cast<int8_t>(_readByte());
+            return static_cast<float>(pitch);
         }
-    }*/
-
-    int8_t pitch;
-    if (_i2c)
-    {
-        pitch = _readSignedByte(CMPS14_PITCH);
     }
-    else
-    {
-        _writeByte(CMPS14_PITCH_90_CMD);
-        pitch = _readSignedByte();
-    }
-
-    return static_cast<float>(pitch);
 }
 
-// BROKEN??
 float cmps14::getRoll()
 {
-    // WIP: MATH IS WRONG RIGHT NOW ON HIGHER RESOLUTION ROLL
-    int8_t rollMsb;
-    int8_t rollLsb;
+    uint8_t rollMsb, rollLsb;
 
     if (_i2c)
     {
-        rollMsb = _readSignedByte(CMPS14_ROLL_HIGH);
-        rollLsb = _readSignedByte(CMPS14_ROLL_LOW);
+        rollMsb = _readByte(CMPS14_ROLL_HIGH);
+        rollLsb = _readByte(CMPS14_ROLL_LOW);
     }
     else
     {
         _writeByte(CMPS14_ROLL_180_CMD);
-        rollMsb = _readSignedByte();
-        rollLsb = _readSignedByte();
+        rollMsb = _readByte();
+        rollLsb = _readByte();
     }
 
-    int16_t roll = (static_cast<int16_t>(rollMsb) << 8) | rollLsb;
+    int16_t roll = static_cast<int16_t>((static_cast<uint16_t>(rollMsb) << 8) | rollLsb);
 
-    // 16 bit roll angle for +/- 180 from the horizontal plane.
-    // Value is in tenths of degrees (range of +/- 1800), thus
-    // need to extract last digit as decimal in tens place
     float decimal = static_cast<float>(roll % 10) / 10;
     if (roll < 0)
         decimal *= -1;
+
     return static_cast<float>(roll / 10) + decimal;
-
-    /*int8_t roll;
-    if (_i2c)
-    {
-        roll = _readSignedByte(CMPS14_ROLL);
-    }
-    else
-    {
-        _writeByte(CMPS14_ROLL_90_CMD);
-        roll = _readSignedByte();
-    }
-
-    return static_cast<float>(roll);*/
 }
 
 // WIP:
+// BROKEN
 std::vector<float> cmps14::getOrientation()
 {
     uint16_t heading;
@@ -440,8 +405,9 @@ std::vector<float> cmps14::getOrientation()
         _writeByte(CMPS14_ALL_ORIENT_CMD);
         headingMsb = _readByte();
         headingLsb = _readByte();
-        pitch = _readSignedByte();
-        roll = _readSignedByte();
+        pitch = static_cast<int8_t>(_readByte());
+        roll = static_cast<int8_t>(_readByte());
+
 
         heading = (static_cast<uint16_t>(headingMsb) << 8) | headingLsb;
     }
