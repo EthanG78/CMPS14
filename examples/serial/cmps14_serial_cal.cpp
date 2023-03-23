@@ -33,7 +33,7 @@ int main()
     imu->toggleBackgroundCal(true);
 
     // Loop until all sensors are fully calibrated
-    while (calStatus[3] + calStatus[2] + calStatus[1] + calStatus[0] < 12)
+    while (calStatus[3] + calStatus[1] + calStatus[0] < 9)
     {
         calStatus = imu->getCalibrationStatus();
         std::cout << "\nIMU Calibration State: " << std::endl
